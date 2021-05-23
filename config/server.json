@@ -2,6 +2,6 @@
   "port": 8080,
   "enableSSL": false,
   "sslPort": 8443,
-  "deployDir": "F:/temp/python-deploy",
-  "logFileDir": "F:/temp/python-deploy/logs"
+  "deployDir": "F:/AlgoTrading/temp/python-deploy",
+  "logFileDir": "F:/AlgoTrading/temp/python-deploy/logs"
 }
