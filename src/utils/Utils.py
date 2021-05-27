@@ -240,18 +240,17 @@ class Utils:
     else:
       return inputPrice + (nearestMultiple - remainder)
 
-    @staticmethod
-    def setupTelegram():
-        telegramChannelConfig = getTelegramConfig()
-        telegramchanneldetails = TelegramChannelDetails()
-        telegramchanneldetails.setBottoken((telegramChannelConfig['bot_token']))
-        telegramchanneldetails.setChannelId((telegramChannelConfig['Channel_id']))
+  @staticmethod
+  def setupTelegram():
+    telegramChannelConfig = getTelegramConfig()
+    telegramchanneldetails = TelegramChannelDetails()
+    telegramchanneldetails.setBottoken((telegramChannelConfig['bot_token']))
+    telegramchanneldetails.setChannelId((telegramChannelConfig['Channel_id']))
 
-        bot = telegram.Bot(token=telegramchanneldetails.bot_token)  # Created bot insatnce
-        # bot.send_message(chat_id = telegramchanneldetails.channel_id,text ='Good morning Avinash. All the best for the day!!')
-        return bot
+    bot = telegram.Bot(token=telegramchanneldetails.bot_token)  # Created bot insatnce
+    return bot
 
-    def sendmessage(bot, message):
-        telegramChannelConfig = getTelegramConfig()
-        bot.send_message(chat_id=telegramChannelConfig['Channel_id'], text=message)
-        return
+  def sendmessage(bot, message):
+    telegramChannelConfig = getTelegramConfig()
+    bot.send_message(chat_id=telegramChannelConfig['Channel_id'], text=message)
+    return

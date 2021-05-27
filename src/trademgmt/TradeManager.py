@@ -77,7 +77,7 @@ class TradeManager:
         # Fetch all order details from broker and update orders in each trade
         TradeManager.fetchAndUpdateAllTradeOrders()
         # track each trade and take necessary action
-        TradeManager.trackAndUpdateAllTrades()
+        TradeManager.trackAndUpdateAllTrades(telegrambot)
       except Exception as e:
         logging.exception("Exception in TradeManager Main thread")
 
@@ -211,16 +211,22 @@ class TradeManager:
     except Exception as e:
       logging.error('TradeManager: Execute trade failed for tradeID %s: Error => %s', trade.tradeID, str(e))
       Utils.sendmessage(bot=telegrambot,
-                        message='Execute trade failed for tradeID {}: Error => {}'.format(str(trade.tradeID), str(e)))
+                        message='Execute trade failed for tradeID {}: Error => {}'
+                        .format(str(trade.tradeID), str(e)))
       return False
 
     logging.info('TradeManager: Execute trade successful for %s and entryOrder %s', trade, trade.entryOrder)
     Utils.sendmessage(bot=telegrambot,
-                      message='Execute trade successful with OrderID = {}\n Trade Symbol = {}\n  Price = {}\n  '
-                              'Direction = {}\n Strategy = {}\n Initial Stop loss order will be creatd at {}'
-                              .format(str(trade.entryOrder['orderId']), str(trade['tradingSymbol']),
-                               str(trade['requestedEntry']), str(trade['direction']), str(trade['strategy']),
-                               str(trade['initialStopLoss'])))
+                      message=("Execute trade successful with\n"
+                               "OrderID = {}\n"
+                               "Trade Symbol = {}\n"
+                               "Price = {}\n"
+                               "Direction = {}\n"
+                               "Strategy = {}\n"
+                               "Initial Stop loss order will be creatd at {}\n")
+                               .format(str(trade.entryOrder.orderId), str(trade.tradingSymbol),
+                                      str(trade.requestedEntry), str(trade.direction), str(trade.strategy),
+                                      str(trade.initialStopLoss)))
     return True
 
   @staticmethod
@@ -237,11 +243,11 @@ class TradeManager:
     TradeManager.getOrderManager().fetchAndUpdateAllOrderDetails(allOrders)
 
   @staticmethod
-  def trackAndUpdateAllTrades():
+  def trackAndUpdateAllTrades(telegrambot):
     for trade in TradeManager.trades:
       if trade.tradeState == TradeState.ACTIVE:
         TradeManager.trackEntryOrder(trade)
-        TradeManager.trackSLOrder(trade)
+        TradeManager.trackSLOrder(trade,telegrambot)
         TradeManager.trackTargetOrder(trade)
         if trade.intradaySquareOffTimestamp != None:
           nowEpoch = Utils.getEpoch()
@@ -267,7 +273,7 @@ class TradeManager:
     Utils.calculateTradePnl(trade)
 
   @staticmethod
-  def trackSLOrder(trade):
+  def trackSLOrder(trade,telegrambot):
     if trade.tradeState != TradeState.ACTIVE:
       return
     if trade.stopLoss == 0: # Do not place SL order if no stopLoss provided
@@ -293,10 +299,10 @@ class TradeManager:
         TradeManager.cancelTargetOrder(trade)
 
       else:
-        TradeManager.checkAndUpdateTrailSL(trade)
+        TradeManager.checkAndUpdateTrailSL(trade,telegrambot)
 
   @staticmethod
-  def checkAndUpdateTrailSL(trade):
+  def checkAndUpdateTrailSL(trade,telegrambot):
     # Trail the SL if applicable for the trade
     strategyInstance = TradeManager.strategyToInstanceMap[trade.strategy]
     if strategyInstance == None:
@@ -317,8 +323,24 @@ class TradeManager:
         TradeManager.getOrderManager().modifyOrder(trade.slOrder, omp)
         logging.info('TradeManager: Trail SL: Successfully modified stopLoss from %f to %f for tradeID %s', oldSL, newTrailSL, trade.tradeID)
         trade.stopLoss = newTrailSL # IMPORTANT: Dont forget to update this on successful modification
+        Utils.sendmessage(bot=telegrambot,
+                          message=("Trail SL: Successfully modified stopLoss for \n"
+                                   "Symbol = {}\n"
+                                   "from = {}\n"
+                                   "to = {}\n"
+                                   "Strategy = {}\n"
+                                   "OrderID = {}\n")
+                                  .format(str(trade.tradingSymbol),
+                                  str(oldSL), str(newTrailSL), str(trade.strategy),str(trade.slOrder.orderId)))
       except Exception as e:
         logging.error('TradeManager: Failed to modify SL order for tradeID %s orderId %s: Error => %s', trade.tradeID, trade.slOrder.orderId, str(e))
+        Utils.sendmessage(bot=telegrambot,
+                          message=("TradeManager: Failed to modify SL order for \n"
+                                   "tradeID = {}\n"
+                                   "orderId = {}\n"
+                                   "Error = {}\n")
+                                  .format(str(trade.tradeID),
+                                  str(trade.slOrder.orderId), str(e)))
 
   @staticmethod
   def trackTargetOrder(trade):
