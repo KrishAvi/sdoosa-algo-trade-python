@@ -36,3 +36,8 @@ def saveTimestampsData(timestamps = {}):
   with open(timestampsFilePath, 'w') as timestampsFile:
     json.dump(timestamps, timestampsFile, indent=2)
   print("saved timestamps data to file " + timestampsFilePath)
+
+def getTelegramConfig():
+  with open('../config/Telegram.json', 'r') as telegramapp:
+    jsonTelegramCnfgData = json.load(telegramapp)
+    return jsonTelegramCnfgData

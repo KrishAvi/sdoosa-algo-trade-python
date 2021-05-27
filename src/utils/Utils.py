@@ -4,10 +4,15 @@ import time
 import logging
 import calendar
 from datetime import datetime, timedelta
+import telegram
 
 from config.Config import getHolidays
 from models.Direction import Direction
 from trademgmt.TradeState import TradeState
+
+from config.Config import getTelegramConfig
+from models.TelegramChannelDetails import TelegramChannelDetails
+
 
 class Utils:
   dateFormat = "%Y-%m-%d"
@@ -17,7 +22,7 @@ class Utils:
   @staticmethod
   def roundOff(price): # Round off to 2 decimal places
     return round(price, 2)
-    
+
   @staticmethod
   def roundToNSEPrice(price):
     x = round(price, 2) * 20
@@ -103,7 +108,7 @@ class Utils:
   @staticmethod
   def isTodayHoliday():
     return Utils.isHoliday(datetime.now())
-    
+
   @staticmethod
   def generateTradeID():
     return str(uuid.uuid4())
@@ -114,13 +119,13 @@ class Utils:
       if trade.cmp > 0:
         if trade.direction == Direction.LONG:
           trade.pnl = Utils.roundOff(trade.filledQty * (trade.cmp - trade.entry))
-        else:  
+        else:
           trade.pnl = Utils.roundOff(trade.filledQty * (trade.entry - trade.cmp))
     else:
       if trade.exit > 0:
         if trade.direction == Direction.LONG:
           trade.pnl = Utils.roundOff(trade.filledQty * (trade.exit - trade.entry))
-        else:  
+        else:
           trade.pnl = Utils.roundOff(trade.filledQty * (trade.entry - trade.exit))
     tradeValue = trade.entry * trade.filledQty
     if tradeValue > 0:
@@ -138,7 +143,7 @@ class Utils:
     year2Digits = str(expiryDateTime.year)[2:]
     monthShort = calendar.month_name[expiryDateTime.month].upper()[0:3]
     futureSymbol = inputSymbol + year2Digits + monthShort + 'FUT'
-    logging.info('prepareMonthlyExpiryFuturesSymbol[%s] = %s', inputSymbol, futureSymbol)  
+    logging.info('prepareMonthlyExpiryFuturesSymbol[%s] = %s', inputSymbol, futureSymbol)
     return futureSymbol
 
   @staticmethod
@@ -175,7 +180,7 @@ class Utils:
         mStr = "D"
       dStr = ("0" + str(d)) if d < 10 else str(d)
       optionSymbol = inputSymbol + str(year2Digits) + mStr + dStr + str(strike) + optionType.upper()
-    logging.info('prepareWeeklyOptionsSymbol[%s, %d, %s, %d] = %s', inputSymbol, strike, optionType, numWeeksPlus, optionSymbol)  
+    logging.info('prepareWeeklyOptionsSymbol[%s, %d, %s, %d] = %s', inputSymbol, strike, optionType, numWeeksPlus, optionSymbol)
     return optionSymbol
 
   @staticmethod
@@ -223,7 +228,7 @@ class Utils:
     expiryDate = Utils.getWeeklyExpiryDayDate()
     todayDate = Utils.getTimeOfToDay(0, 0, 0)
     if expiryDate - timedelta(days=1) == todayDate:
-      return True  
+      return True
     return False
 
   @staticmethod
@@ -234,3 +239,19 @@ class Utils:
       return inputPrice - remainder
     else:
       return inputPrice + (nearestMultiple - remainder)
+
+    @staticmethod
+    def setupTelegram():
+        telegramChannelConfig = getTelegramConfig()
+        telegramchanneldetails = TelegramChannelDetails()
+        telegramchanneldetails.setBottoken((telegramChannelConfig['bot_token']))
+        telegramchanneldetails.setChannelId((telegramChannelConfig['Channel_id']))
+
+        bot = telegram.Bot(token=telegramchanneldetails.bot_token)  # Created bot insatnce
+        # bot.send_message(chat_id = telegramchanneldetails.channel_id,text ='Good morning Avinash. All the best for the day!!')
+        return bot
+
+    def sendmessage(bot, message):
+        telegramChannelConfig = getTelegramConfig()
+        bot.send_message(chat_id=telegramChannelConfig['Channel_id'], text=message)
+        return

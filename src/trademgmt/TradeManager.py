@@ -39,6 +39,8 @@ class TradeManager:
       logging.info("Cannot start TradeManager as Market is closed for the day.")
       return
 
+    telegrambot = Utils.setupTelegram()
+    Utils.sendmessage(bot=telegrambot, message='Good morning Avinash. All the best for the day!!')
     Utils.waitTillMarketOpens("TradeManager")
 
     # check and create trades directory for today`s date
@@ -81,7 +83,7 @@ class TradeManager:
 
       # save updated data to json file
       TradeManager.saveAllTradesToFile()
-      
+
       # sleep for 30 seconds and then continue
       time.sleep(30)
       logging.info('TradeManager: Main thread woke up..')
@@ -144,7 +146,7 @@ class TradeManager:
       trade.tradeState = TradeState.DISABLED
 
   @staticmethod
-  def tickerListener(tick):
+  def tickerListener(tick,telegrambot):
     # logging.info('tickerLister: new tick received for %s = %f', tick.tradingSymbol, tick.lastTradedPrice);
     TradeManager.symbolToCMPMap[tick.tradingSymbol] = tick.lastTradedPrice # Store the latest tick in map
     # On each new tick, get a created trade and call its strategy whether to place trade or not
@@ -157,22 +159,22 @@ class TradeManager:
       if longTrade != None:
         if strategyInstance.shouldPlaceTrade(longTrade, tick):
           # place the longTrade
-          isSuccess = TradeManager.executeTrade(longTrade)
+          isSuccess = TradeManager.executeTrade(longTrade,telegrambot)
           if isSuccess == True:
             # set longTrade state to ACTIVE
             longTrade.tradeState = TradeState.ACTIVE
             longTrade.startTimestamp = Utils.getEpoch()
             continue
-      
+
       if shortTrade != None:
         if strategyInstance.shouldPlaceTrade(shortTrade, tick):
           # place the shortTrade
-          isSuccess = TradeManager.executeTrade(shortTrade)
+          isSuccess = TradeManager.executeTrade(shortTrade, telegrambot)
           if isSuccess == True:
             # set shortTrade state to ACTIVE
             shortTrade.tradeState = TradeState.ACTIVE
             shortTrade.startTimestamp = Utils.getEpoch()
-  
+
   @staticmethod
   def getUntriggeredTrade(tradingSymbol, strategy, direction):
     trade = None
@@ -192,7 +194,7 @@ class TradeManager:
     return trade
 
   @staticmethod
-  def executeTrade(trade):
+  def executeTrade(trade,telegrambot):
     logging.info('TradeManager: Execute trade called for %s', trade)
     trade.initialStopLoss = trade.stopLoss
     # Create order input params object and place order
@@ -208,9 +210,17 @@ class TradeManager:
       trade.entryOrder = TradeManager.getOrderManager().placeOrder(oip)
     except Exception as e:
       logging.error('TradeManager: Execute trade failed for tradeID %s: Error => %s', trade.tradeID, str(e))
+      Utils.sendmessage(bot=telegrambot,
+                        message='Execute trade failed for tradeID {}: Error => {}'.format(str(trade.tradeID), str(e)))
       return False
 
     logging.info('TradeManager: Execute trade successful for %s and entryOrder %s', trade, trade.entryOrder)
+    Utils.sendmessage(bot=telegrambot,
+                      message='Execute trade successful with OrderID = {}\n Trade Symbol = {}\n  Price = {}\n  '
+                              'Direction = {}\n Strategy = {}\n Initial Stop loss order will be creatd at {}'
+                              .format(str(trade.entryOrder['orderId']), str(trade['tradingSymbol']),
+                               str(trade['requestedEntry']), str(trade['direction']), str(trade['strategy']),
+                               str(trade['initialStopLoss'])))
     return True
 
   @staticmethod
@@ -338,7 +348,7 @@ class TradeManager:
   @staticmethod
   def placeSLOrder(trade):
     oip = OrderInputParams(trade.tradingSymbol)
-    oip.direction = Direction.SHORT if trade.direction == Direction.LONG else Direction.LONG 
+    oip.direction = Direction.SHORT if trade.direction == Direction.LONG else Direction.LONG
     oip.productType = trade.productType
     oip.orderType = OrderType.SL_MARKET
     oip.triggerPrice = trade.stopLoss
