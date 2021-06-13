@@ -7,7 +7,7 @@ from utils.Utils import Utils
 
 class Trade:
   def __init__(self, tradingSymbol = None):
-    self.exchange = "NSE" 
+    self.exchange = "NSE"
     self.tradeID = Utils.generateTradeID() # Unique ID for each trade
     self.tradingSymbol = tradingSymbol
     self.strategy = ""
@@ -36,10 +36,17 @@ class Trade:
     self.pnlPercentage = 0 # Profit Loss in percentage terms
     self.exit = 0 # Exit price of the trade
     self.exitReason = None # SL/Target/SquareOff/Any Other
-    
+
     self.entryOrder = None # Object of Type ordermgmt.Order
     self.slOrder = None # Object of Type ordermgmt.Order
     self.targetOrder = None # Object of Type ordermgmt.Order
+    # These 6 fields will have significance only in Uncle Short strddle
+    self.futureSymbol = None #Symbol for ISS FMTW
+    self.futureSymbolSpotPrice = 0 #Spot price for ISS FMTW
+    self.upperRangeSl = 0 #Upper range SL in ISS FMTW
+    self.lowerRangeSl = 0 #Lower range SL in ISS FMTW
+    self.optionSymbolPair = None #Symbol pair for ISS for Thursday
+    self.runningSL = 0  #Stop loss points for ISS for Thursday
 
   def equals(self, trade): # compares to trade objects and returns True if equals
     if trade == None:
@@ -49,7 +56,7 @@ class Trade:
     if self.tradingSymbol != trade.tradingSymbol:
       return False
     if self.strategy != trade.strategy:
-      return False  
+      return False
     if self.direction != trade.direction:
       return False
     if self.productType != trade.productType:
