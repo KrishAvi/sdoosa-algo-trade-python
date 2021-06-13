@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import Flask
-
+from utils.Utils import Utils
 from config.Config import getBrokerAppConfig, getServerConfig, getSystemConfig
 from restapis.HomeAPI import HomeAPI
 from restapis.BrokerLoginAPI import BrokerLoginAPI
@@ -37,7 +37,7 @@ if os.path.exists(logFileDir) == False:
 
 print("Deploy  Directory = " + deployDir)
 print("LogFile Directory = " + logFileDir)
-initLoggingConfg(logFileDir + "/app.log")
+initLoggingConfg(logFileDir + "/"+str(Utils.getTodayDateStr())+"_app"+".log")
 
 logging.info('serverConfig => %s', serverConfig)
 
