@@ -10,22 +10,22 @@ from trademgmt.Trade import Trade
 from trademgmt.TradeManager import TradeManager
 
 # Each strategy has to be derived from BaseStrategy
-class ShortStraddleNIFTY(BaseStrategy):
+class ISS_NIFTY_FMTW(BaseStrategy):
   __instance = None
 
   @staticmethod
   def getInstance(): # singleton class
-    if ShortStraddleNIFTY.__instance == None:
-      ShortStraddleNIFTY()
-    return ShortStraddleNIFTY.__instance
+    if ISS_NIFTY_FMTW.__instance == None:
+      ISS_NIFTY_FMTW()
+    return ISS_NIFTY_FMTW.__instance
 
   def __init__(self):
-    if ShortStraddleNIFTY.__instance != None:
+    if ISS_NIFTY_FMTW.__instance != None:
       raise Exception("This class is a singleton!")
     else:
-      ShortStraddleNIFTY.__instance = self
+      ISS_NIFTY_FMTW.__instance = self
     # Call Base class constructor
-    super().__init__("ShortStraddleNIFTY")
+    super().__init__("ISS_NIFTY_FMTW")
     # Initialize all the properties specific to this strategy
     self.productType = ProductType.MIS
     self.symbols = []
@@ -40,7 +40,8 @@ class ShortStraddleNIFTY(BaseStrategy):
     self.isFnO = True # Does this strategy trade in FnO or not
     self.capitalPerSet = 140000 # Applicable if isFnO is True (1 set means 1CE/1PE or 2CE/2PE etc based on your strategy logic)
     self.divisionfactor = 3 # Friday, Monday, Tuesday DF = 3 and Wednesday DF = 2
-
+    self.roundedtoNearest = 50
+      
   def canTradeToday(self):
     # Even if you remove this function canTradeToday() completely its same as allowing trade every day
     return True
@@ -61,7 +62,7 @@ class ShortStraddleNIFTY(BaseStrategy):
 
     FUTURESymbolSpotPrice = quote.lastTradedPrice #Capture Spot price before go for nearest value round off
     FUTURESymbol = futureSymbol #Capture future base symbol for monitoring in 30 sec trail SL task
-    ATMStrike = Utils.getNearestStrikePrice(quote.lastTradedPrice, 100) #Rounded to nearest 100
+    ATMStrike = Utils.getNearestStrikePrice(quote.lastTradedPrice, self.roundedtoNearest) #Rounded to nearest 100
     logging.info('%s: Nifty CMP = %f, ATMStrike = %d', self.getName(), quote.lastTradedPrice, ATMStrike)
 
     ATMCESymbol = Utils.prepareWeeklyOptionsSymbol("NIFTY", ATMStrike, 'CE')

@@ -10,6 +10,8 @@ from strategies.BNFORB30Min import BNFORB30Min
 from strategies.OptionSelling import OptionSelling
 from strategies.ShortStraddleBNF import ShortStraddleBNF
 from strategies.ShortStraddleNIFTY import ShortStraddleNIFTY
+from strategies.ISS_NIFTY_ExpiryDay import ISS_NIFTY_ExpiryDay
+from strategies.ISS_NIFTY_FMTW import ISS_NIFTY_FMTW
 
 #from Test import Test
 
@@ -37,7 +39,10 @@ class Algo:
     #threading.Thread(target=BNFORB30Min.getInstance().run).start()
     #threading.Thread(target=OptionSelling.getInstance().run).start()
     #threading.Thread(target=ShortStraddleBNF.getInstance().run).start()
-    threading.Thread(target=ShortStraddleNIFTY.getInstance().run).start()
+    #threading.Thread(target=ShortStraddleNIFTY.getInstance().run).start()
+    threading.Thread(target=ISS_NIFTY_FMTW.getInstance().run).start()
+    #threading.Thread(target=ISS_NIFTY_ExpiryDay.getInstance().run).start()
+
     
     Algo.isAlgoRunning = True
     logging.info("Algo started.")

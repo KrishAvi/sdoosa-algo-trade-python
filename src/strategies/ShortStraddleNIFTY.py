@@ -39,6 +39,7 @@ class ShortStraddleNIFTY(BaseStrategy):
     self.maxTradesPerDay = 2 # (1 CE + 1 PE) Max number of trades per day under this strategy
     self.isFnO = True # Does this strategy trade in FnO or not
     self.capitalPerSet = 110000 # Applicable if isFnO is True (1 set means 1CE/1PE or 2CE/2PE etc based on your strategy logic)
+    self.roundedtoNearest = 50
 
   def canTradeToday(self):
     # Even if you remove this function canTradeToday() completely its same as allowing trade every day
@@ -58,7 +59,7 @@ class ShortStraddleNIFTY(BaseStrategy):
       logging.error('%s: Could not get quote for %s', self.getName(), futureSymbol)
       return
 
-    ATMStrike = Utils.getNearestStrikePrice(quote.lastTradedPrice, 100)
+    ATMStrike = Utils.getNearestStrikePrice(quote.lastTradedPrice, self.roundedtoNearest)
     logging.info('%s: Nifty CMP = %f, ATMStrike = %d', self.getName(), quote.lastTradedPrice, ATMStrike)
 
     ATMCESymbol = Utils.prepareWeeklyOptionsSymbol("NIFTY", ATMStrike, 'CE')

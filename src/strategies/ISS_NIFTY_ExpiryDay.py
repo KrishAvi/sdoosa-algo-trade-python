@@ -10,22 +10,22 @@ from trademgmt.Trade import Trade
 from trademgmt.TradeManager import TradeManager
 
 # Each strategy has to be derived from BaseStrategy
-class ShortStraddleNIFTY(BaseStrategy):
+class ISS_NIFTY_ExpiryDay(BaseStrategy):
   __instance = None
 
   @staticmethod
   def getInstance(): # singleton class
-    if ShortStraddleNIFTY.__instance == None:
-      ShortStraddleNIFTY()
-    return ShortStraddleNIFTY.__instance
+    if ISS_NIFTY_ExpiryDay.__instance == None:
+      ISS_NIFTY_ExpiryDay()
+    return ISS_NIFTY_ExpiryDay.__instance
 
   def __init__(self):
-    if ShortStraddleNIFTY.__instance != None:
+    if ISS_NIFTY_ExpiryDay.__instance != None:
       raise Exception("This class is a singleton!")
     else:
-      ShortStraddleNIFTY.__instance = self
+      ISS_NIFTY_ExpiryDay.__instance = self
     # Call Base class constructor
-    super().__init__("ShortStraddleNIFTY")
+    super().__init__("ISS_NIFTY_ExpiryDay")
     # Initialize all the properties specific to this strategy
     self.productType = ProductType.MIS
     self.symbols = []
@@ -40,7 +40,7 @@ class ShortStraddleNIFTY(BaseStrategy):
     self.isFnO = True # Does this strategy trade in FnO or not
     self.capitalPerSet = 140000 # Applicable if isFnO is True (1 set means 1CE/1PE or 2CE/2PE etc based on your strategy logic)
     self.slRunnningPercentage = 20 # Expiry day total premium collected running SL percentage
-    self.roundedtoNearest = 100 #Rounded to nearest 100 or 50
+    self.roundedtoNearest = 50 #Rounded to nearest 100 or 50
 
   def canTradeToday(self):
     # Even if you remove this function canTradeToday() completely its same as allowing trade every day
