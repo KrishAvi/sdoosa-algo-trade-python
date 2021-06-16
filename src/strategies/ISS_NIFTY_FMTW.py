@@ -41,7 +41,7 @@ class ISS_NIFTY_FMTW(BaseStrategy):
     self.capitalPerSet = 140000 # Applicable if isFnO is True (1 set means 1CE/1PE or 2CE/2PE etc based on your strategy logic)
     self.divisionfactor = 3 # Friday, Monday, Tuesday DF = 3 and Wednesday DF = 2
     self.roundedtoNearest = 50
-      
+
   def canTradeToday(self):
     # Even if you remove this function canTradeToday() completely its same as allowing trade every day
     return True
@@ -112,6 +112,7 @@ class ISS_NIFTY_FMTW(BaseStrategy):
     trade.target = 0 # setting to 0 as no target is applicable for this trade
 
     trade.intradaySquareOffTimestamp = Utils.getEpoch(self.squareOffTimestamp)
+    trade.squareOffCondtion = False #Initialise square off conndition for monitoring
     # Hand over the trade to TradeManager
     TradeManager.addNewTrade(trade)
 
@@ -134,10 +135,12 @@ class ISS_NIFTY_FMTW(BaseStrategy):
     trailSL = 0
     breakout_point = self.getQuote(trade.futureSymbol)
     if breakout_point.lastTradedPrice > trade.upperRangeSl:
-      trailSL = lastTradedPrice
+      #trailSL = lastTradedPrice
+      trade.squareOffCondtion = True # This cancels existing SL ordre and place market order
       logging.info('%s: Stop loss hit: %s and its value %f breaks upper SL range %f', self.getName(), trade.futureSymbol,breakout_point.lastTradedPrice,trade.upperRangeSl)
     elif breakout_point.lastTradedPrice < trade.lowerRangeSl:
-      trailSL = lastTradedPrice
+      #trailSL = lastTradedPrice
+      trade.squareOffCondtion = True # This cancels existing SL ordre and place market order
       logging.info('%s: Stop loss hit: %s and its value %f breaks lower SL range %f', self.getName(), trade.futureSymbol,breakout_point.lastTradedPrice,trade.lowerRangeSl)
     else:
       logging.info('%s: %s Stop loss monitoring: Its value is %f between %f and %f', self.getName(), trade.futureSymbol,
