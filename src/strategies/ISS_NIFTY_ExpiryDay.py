@@ -119,6 +119,7 @@ class ISS_NIFTY_ExpiryDay(BaseStrategy):
     trade.target = 0 # setting to 0 as no target is applicable for this trade
 
     trade.intradaySquareOffTimestamp = Utils.getEpoch(self.squareOffTimestamp)
+    trade.squareOffCondtion = False  # Initialise square off conndition for monitoring
     # Hand over the trade to TradeManager
     TradeManager.addNewTrade(trade)
 
@@ -150,7 +151,8 @@ class ISS_NIFTY_ExpiryDay(BaseStrategy):
 
     trailSL = 0
     if sum_premium > trade.runningSL:
-      trailSL = lastTradedPrice
+      #trailSL = lastTradedPrice
+      trade.squareOffCondtion = True  #square off
       logging.info('%s: %s Stop loss hit as sum of premium = %f excedes trailing SL = %f ',
                    self.getName(), trade.tradingSymbol, sum_premium,trade.runningSL )
     else:

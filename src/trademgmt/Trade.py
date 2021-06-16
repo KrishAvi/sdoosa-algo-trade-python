@@ -47,6 +47,7 @@ class Trade:
     self.lowerRangeSl = 0 #Lower range SL in ISS FMTW
     self.optionSymbolPair = None #Symbol pair for ISS for Thursday
     self.runningSL = 0  #Stop loss points for ISS for Thursday
+    self.squareOffCondtion = False #This condition should set to True to square off the trade.
 
   def equals(self, trade): # compares to trade objects and returns True if equals
     if trade == None:

@@ -233,9 +233,9 @@ class TradeManager:
         TradeManager.trackEntryOrder(trade)
         TradeManager.trackSLOrder(trade)
         TradeManager.trackTargetOrder(trade)
-        if trade.intradaySquareOffTimestamp != None:
+        if trade.intradaySquareOffTimestamp != None or trade.squareOffCondtion == True:
           nowEpoch = Utils.getEpoch()
-          if nowEpoch >= trade.intradaySquareOffTimestamp:
+          if nowEpoch >= trade.intradaySquareOffTimestamp or trade.squareOffCondtion == True:
             TradeManager.squareOffTrade(trade, TradeExitReason.SQUARE_OFF)
 
   @staticmethod
