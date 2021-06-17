@@ -9,6 +9,8 @@ from utils.Utils import Utils
 from trademgmt.Trade import Trade
 from trademgmt.TradeManager import TradeManager
 
+slPtsSysc = 0
+sum_premium = 0
 # Each strategy has to be derived from BaseStrategy
 class ISS_NIFTY_ExpiryDay(BaseStrategy):
   __instance = None
@@ -88,6 +90,10 @@ class ISS_NIFTY_ExpiryDay(BaseStrategy):
       slFactorPercentage = 10
 
     runningSL = slFactor + slFactorPercentage
+    global slPtsSysc
+    global sum_premium
+    slPtsSysc = runningSL # Initilalisation starting SL
+    sum_premium = slFactor #Initilalisation of Sum premium
     #upperRangeSl = FUTURESymbolSpotPrice + slFactor
     #lowerRangeSl = FUTURESymbolSpotPrice - slFactor
 
@@ -138,20 +144,38 @@ class ISS_NIFTY_ExpiryDay(BaseStrategy):
     lastTradedPrice = TradeManager.getLastTradedPrice(trade.tradingSymbol)
     if lastTradedPrice == 0:
       return 0
-    optionSymbolPair = self.getQuote(trade.optionSymbolPair)
-
-    sum_premium = optionSymbolPair.lastTradedPrice + lastTradedPrice
-    new_runningSL = sum_premium + Utils.roundToNSEPrice(sum_premium * self.slRunnningPercentage / 100)
-    # Calculate differnce between initila runningSL with present premium sum
-    # If present sum is less than previous update the trailing SL
-    if trade.runningSL > new_runningSL:
-      logging.info('%s: %s Stop loss premium updatde from %f to %f',
-                   self.getName(), trade.tradingSymbol, trade.runningSL,new_runningSL )
-      trade.runningSL = new_runningSL
+    '''
+    At Every CE involke,
+      1) Capture both CE & PE premium 
+      2) Calculate Stop loss value store for PE Trade 
+      3) Check premium collected stop loss percent is 5 points less than previous value
+          if YES update SL
+          else Keep old SL
+      4) Save updated SL value for PE Trade
+    At Every PE invoke
+      1)Update SL captured during CE
+    
+    At very invoke
+    If Sum_premium > SL
+      Square off.
+    '''
+    if 'CE' in trade.tradingSymbol:
+      optionSymbolPair = self.getQuote(trade.optionSymbolPair)
+      global sum_premium
+      sum_premium = optionSymbolPair.lastTradedPrice + lastTradedPrice
+      new_runningSL = sum_premium + Utils.roundToNSEPrice(sum_premium * self.slRunnningPercentage / 100)
+      profitPoints = int(trade.runningSL - new_runningSL)
+      if profitPoints >= 5:
+        logging.info('%s: %s Stop loss premium updatde from %f to %f',
+                     self.getName(), trade.tradingSymbol, trade.runningSL, new_runningSL)
+        trade.runningSL = new_runningSL
+        global slPtsSysc
+        slPtsSysc = new_runningSL
+    elif 'PE' in trade.tradingSymbol:
+      trade.runningSL = slPtsSysc
 
     trailSL = 0
     if sum_premium > trade.runningSL:
-      #trailSL = lastTradedPrice
       trade.squareOffCondtion = True  #square off
       logging.info('%s: %s Stop loss hit as sum of premium = %f excedes trailing SL = %f ',
                    self.getName(), trade.tradingSymbol, sum_premium,trade.runningSL )

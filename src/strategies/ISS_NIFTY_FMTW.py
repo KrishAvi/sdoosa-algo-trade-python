@@ -9,6 +9,7 @@ from utils.Utils import Utils
 from trademgmt.Trade import Trade
 from trademgmt.TradeManager import TradeManager
 
+breakout_point = None
 # Each strategy has to be derived from BaseStrategy
 class ISS_NIFTY_FMTW(BaseStrategy):
   __instance = None
@@ -133,13 +134,16 @@ class ISS_NIFTY_FMTW(BaseStrategy):
       return 0
 
     trailSL = 0
-    breakout_point = self.getQuote(trade.futureSymbol)
+
+    '''Capture Future value at every CE invoke and use it for PE square off '''
+    if 'CE' in trade.tradingSymbol:
+      global breakout_point
+      breakout_point = self.getQuote(trade.futureSymbol)
+
     if breakout_point.lastTradedPrice > trade.upperRangeSl:
-      #trailSL = lastTradedPrice
       trade.squareOffCondtion = True # This cancels existing SL ordre and place market order
       logging.info('%s: Stop loss hit: %s and its value %f breaks upper SL range %f', self.getName(), trade.futureSymbol,breakout_point.lastTradedPrice,trade.upperRangeSl)
     elif breakout_point.lastTradedPrice < trade.lowerRangeSl:
-      #trailSL = lastTradedPrice
       trade.squareOffCondtion = True # This cancels existing SL ordre and place market order
       logging.info('%s: Stop loss hit: %s and its value %f breaks lower SL range %f', self.getName(), trade.futureSymbol,breakout_point.lastTradedPrice,trade.lowerRangeSl)
     else:
