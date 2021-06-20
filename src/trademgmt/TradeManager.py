@@ -236,7 +236,11 @@ class TradeManager:
         if trade.intradaySquareOffTimestamp != None or trade.squareOffCondtion == True:
           nowEpoch = Utils.getEpoch()
           if nowEpoch >= trade.intradaySquareOffTimestamp or trade.squareOffCondtion == True:
-            TradeManager.squareOffTrade(trade, TradeExitReason.SQUARE_OFF)
+            if trade.squareOffCondtion == True:
+              reason = TradeExitReason.STRATEGY_SQUARE_OFF
+            else:
+              reason = TradeExitReason.SQUARE_OFF
+            TradeManager.squareOffTrade(trade, reason)
 
   @staticmethod
   def trackEntryOrder(trade):

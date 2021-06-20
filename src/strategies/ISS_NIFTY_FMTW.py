@@ -139,6 +139,8 @@ class ISS_NIFTY_FMTW(BaseStrategy):
     if 'CE' in trade.tradingSymbol:
       global breakout_point
       breakout_point = self.getQuote(trade.futureSymbol)
+      logging.info('%s: Breakout point update at CE invoke : %s and its value is %f', self.getName(),
+                   trade.futureSymbol, breakout_point.lastTradedPrice)
 
     if breakout_point.lastTradedPrice > trade.upperRangeSl:
       trade.squareOffCondtion = True # This cancels existing SL ordre and place market order
