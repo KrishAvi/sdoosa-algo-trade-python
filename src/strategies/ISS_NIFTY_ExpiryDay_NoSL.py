@@ -72,7 +72,7 @@ class ISS_NIFTY_ExpiryDay_NoSL(BaseStrategy):
     '''
         if len(self.trades) > 0:
             for trade in self.trades:
-                if 'CE' in trade.tradingSymbol:
+                if trade.squareOffCondtion is not True and 'CE' in trade.tradingSymbol:
                     optionSymbol = self.getQuote(trade.tradingSymbol)
                     optionSymbolPair = self.getQuote(trade.optionSymbolPair)
                     global sum_premium
@@ -85,17 +85,17 @@ class ISS_NIFTY_ExpiryDay_NoSL(BaseStrategy):
                         trade.runningSL = new_runningSL
                         global slPtsSysc
                         slPtsSysc = new_runningSL
-                elif 'PE' in trade.tradingSymbol:
+                elif trade.squareOffCondtion is not True and 'PE' in trade.tradingSymbol:
                     trade.runningSL = slPtsSysc
 
             for tr in self.trades:
-                if sum_premium > tr.runningSL:
-                    trade.squareOffCondtion = True  # square off
+                if tr.squareOffCondtion is not True and sum_premium > tr.runningSL:
+                    tr.squareOffCondtion = True  # square off
                     logging.info('%s: %s Stop loss hit as sum of premium = %f excedes trailing SL = %f ',
-                                 self.getName(), trade.tradingSymbol, sum_premium, trade.runningSL)
+                                 self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
                 else:
                     logging.info('%s: %s Stop loss monitoring: Sum of premium = %f not excedes trailing SL = %f ',
-                                 self.getName(), trade.tradingSymbol, sum_premium, trade.runningSL)
+                                 self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
 
         now = datetime.now()
         if now < self.startTimestamp:

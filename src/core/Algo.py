@@ -9,9 +9,14 @@ from strategies.SampleStrategy import SampleStrategy
 from strategies.BNFORB30Min import BNFORB30Min
 from strategies.OptionSelling import OptionSelling
 from strategies.ShortStraddleBNF import ShortStraddleBNF
+
 from strategies.ShortStraddleNIFTY import ShortStraddleNIFTY
-from strategies.ISS_NIFTY_ExpiryDay import ISS_NIFTY_ExpiryDay
+
 from strategies.ISS_NIFTY_FMTW import ISS_NIFTY_FMTW
+from strategies.ISS_NIFTY_FMTW_NoSL import ISS_NIFTY_FMTW_NoSL
+
+from strategies.ISS_NIFTY_ExpiryDay import ISS_NIFTY_ExpiryDay
+from strategies.ISS_NIFTY_ExpiryDay_NoSL import ISS_NIFTY_ExpiryDay_NoSL
 
 #from Test import Test
 
@@ -35,13 +40,21 @@ class Algo:
     time.sleep(2)
 
     # start running strategies: Run each strategy in a separate thread
-    threading.Thread(target=SampleStrategy.getInstance().run).start()
+    #threading.Thread(target=SampleStrategy.getInstance().run).start()
     #threading.Thread(target=BNFORB30Min.getInstance().run).start()
     #threading.Thread(target=OptionSelling.getInstance().run).start()
     #threading.Thread(target=ShortStraddleBNF.getInstance().run).start()
-    #threading.Thread(target=ShortStraddleNIFTY.getInstance().run).start()
+
+
+    #30cagr
+    threading.Thread(target=ShortStraddleNIFTY.getInstance().run).start()
+
+    #Alok jain
     #threading.Thread(target=ISS_NIFTY_FMTW.getInstance().run).start()
+    threading.Thread(target=ISS_NIFTY_FMTW_NoSL.getInstance().run).start()
+
     #threading.Thread(target=ISS_NIFTY_ExpiryDay.getInstance().run).start()
+    #threading.Thread(target=ISS_NIFTY_ExpiryDay_NoSL.getInstance().run).start()
 
     
     Algo.isAlgoRunning = True
