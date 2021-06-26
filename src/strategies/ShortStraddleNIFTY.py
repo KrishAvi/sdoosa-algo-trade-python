@@ -121,6 +121,8 @@ class ShortStraddleNIFTY(BaseStrategy):
     if profitPoints >= 5:
       factor = int(profitPoints / 5)
       trailSL = Utils.roundToNSEPrice(trade.initialStopLoss - factor * 5)
-    logging.info('%s: %s Returning trail SL %f', self.getName(), trade.tradingSymbol, trailSL)
+      logging.info('%s: %s Returning trail SL %f', self.getName(), trade.tradingSymbol, trailSL)
+    else:
+      logging.info('%s: %s No change in trailing SL!', self.getName(), trade.tradingSymbol)
     return trailSL
 

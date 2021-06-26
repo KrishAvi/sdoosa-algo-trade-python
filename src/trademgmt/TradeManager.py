@@ -233,14 +233,20 @@ class TradeManager:
         TradeManager.trackEntryOrder(trade)
         TradeManager.trackSLOrder(trade)
         TradeManager.trackTargetOrder(trade)
-        if trade.intradaySquareOffTimestamp != None or trade.squareOffCondtion == True:
+
+        '''Time square off condition'''
+        if trade.intradaySquareOffTimestamp != None:
           nowEpoch = Utils.getEpoch()
-          if nowEpoch >= trade.intradaySquareOffTimestamp or trade.squareOffCondtion == True:
-            if trade.squareOffCondtion == True:
-              reason = TradeExitReason.STRATEGY_SQUARE_OFF
-            else:
-              reason = TradeExitReason.SQUARE_OFF
-            TradeManager.squareOffTrade(trade, reason)
+          if nowEpoch >= trade.intradaySquareOffTimestamp:
+            TradeManager.squareOffTrade(trade, TradeExitReason.SQUARE_OFF)
+
+        '''Startegy Square off condition'''
+        if trade.squareOffCondtion == True:
+          if trade.targetOrder == None:
+            TradeManager.squareOffTrade(trade, TradeExitReason.STRATEGY_SQUARE_OFF)
+          elif trade.targetOrder.orderStatus == OrderStatus.COMPLETE:
+            exit = trade.targetOrder.averagePrice
+            TradeManager.setTradeToCompleted(trade, exit, TradeExitReason.STRATEGY_SQUARE_OFF)
 
   @staticmethod
   def trackEntryOrder(trade):
