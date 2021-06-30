@@ -8,6 +8,7 @@ from strategies.BaseStrategy import BaseStrategy
 from utils.Utils import Utils
 from trademgmt.Trade import Trade
 from trademgmt.TradeManager import TradeManager
+from trademgmt.TradeState import TradeState
 
 slPtsSysc = 0
 sum_premium = 0
@@ -72,30 +73,32 @@ class ISS_NIFTY_ExpiryDay_NoSL(BaseStrategy):
     '''
         if len(self.trades) > 0:
             for trade in self.trades:
-                if trade.squareOffCondtion is not True and 'CE' in trade.tradingSymbol:
-                    optionSymbol = self.getQuote(trade.tradingSymbol)
-                    optionSymbolPair = self.getQuote(trade.optionSymbolPair)
-                    global sum_premium
-                    sum_premium = optionSymbolPair.lastTradedPrice + optionSymbol.lastTradedPrice
-                    new_runningSL = sum_premium + Utils.roundToNSEPrice(sum_premium * self.slRunnningPercentage / 100)
-                    profitPoints = int(trade.runningSL - new_runningSL)
-                    if profitPoints >= 5:
-                        logging.info('%s: %s Stop loss premium updatde from %f to %f',
-                                     self.getName(), trade.tradingSymbol, trade.runningSL, new_runningSL)
-                        trade.runningSL = new_runningSL
-                        global slPtsSysc
-                        slPtsSysc = new_runningSL
-                elif trade.squareOffCondtion is not True and 'PE' in trade.tradingSymbol:
-                    trade.runningSL = slPtsSysc
+                if trade.tradeState == TradeState.ACTIVE:
+                    if trade.squareOffCondtion is not True and 'CE' in trade.tradingSymbol:
+                        optionSymbol = self.getQuote(trade.tradingSymbol)
+                        optionSymbolPair = self.getQuote(trade.optionSymbolPair)
+                        global sum_premium
+                        sum_premium = optionSymbolPair.lastTradedPrice + optionSymbol.lastTradedPrice
+                        new_runningSL = sum_premium + Utils.roundToNSEPrice(sum_premium * self.slRunnningPercentage / 100)
+                        profitPoints = int(trade.runningSL - new_runningSL)
+                        if profitPoints >= 5:
+                            logging.info('%s: %s Stop loss premium updatde from %f to %f',
+                                         self.getName(), trade.tradingSymbol, trade.runningSL, new_runningSL)
+                            trade.runningSL = new_runningSL
+                            global slPtsSysc
+                            slPtsSysc = new_runningSL
+                    elif trade.squareOffCondtion is not True and 'PE' in trade.tradingSymbol:
+                        trade.runningSL = slPtsSysc
 
             for tr in self.trades:
-                if tr.squareOffCondtion is not True and sum_premium > tr.runningSL:
-                    tr.squareOffCondtion = True  # square off
-                    logging.info('%s: %s Stop loss hit as sum of premium = %f excedes trailing SL = %f ',
-                                 self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
-                else:
-                    logging.info('%s: %s Stop loss monitoring: Sum of premium = %f not excedes trailing SL = %f ',
-                                 self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
+                if tr.tradeState == TradeState.ACTIVE:
+                    if tr.squareOffCondtion is not True and sum_premium > tr.runningSL:
+                        tr.squareOffCondtion = True  # square off
+                        logging.info('%s: %s Stop loss hit as sum of premium = %f excedes trailing SL = %f ',
+                                     self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
+                    else:
+                        logging.info('%s: %s Stop loss monitoring: Sum of premium = %f not excedes trailing SL = %f ',
+                                     self.getName(), tr.tradingSymbol, sum_premium, tr.runningSL)
 
         now = datetime.now()
         if now < self.startTimestamp:
@@ -145,8 +148,6 @@ class ISS_NIFTY_ExpiryDay_NoSL(BaseStrategy):
         global sum_premium
         slPtsSysc = runningSL  # Initilalisation starting SL
         sum_premium = slFactor  # Initilalisation of Sum premium
-        # upperRangeSl = FUTURESymbolSpotPrice + slFactor
-        # lowerRangeSl = FUTURESymbolSpotPrice - slFactor
 
         self.generateTrade(ATMCESymbol, numLots, quoteATMCESymbol.lastTradedPrice,
                            FUTURESymbol, FUTURESymbolSpotPrice, runningSL, ATMPESymbol)
